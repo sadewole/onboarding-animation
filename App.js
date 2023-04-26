@@ -7,6 +7,7 @@ import {
   View,
   StyleSheet,
   Dimensions,
+  Easing,
 } from 'react-native';
 const { width, height } = Dimensions.get('screen');
 
@@ -124,7 +125,21 @@ const Square = ({ scrollX }) => {
 };
 
 export default function App() {
+  const [currentIndex, setCurrentIndex] = React.useState(0);
   const scrollX = React.useRef(new Animated.Value(0)).current;
+
+  const translateYImage = new Animated.Value(40);
+
+  Animated.timing(translateYImage, {
+    toValue: 0,
+    duration: 1000,
+    useNativeDriver: true,
+    easing: Easing.bounce,
+  }).start();
+
+  const handleOnViewableItemsChanged = React.useRef(({ viewableItems }) => {
+    setCurrentIndex(viewableItems[0].index);
+  }).current;
 
   return (
     <View style={styles.container}>
@@ -138,19 +153,25 @@ export default function App() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
         pagingEnabled
+        onViewableItemsChanged={handleOnViewableItemsChanged}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { x: scrollX } } }],
           { useNativeDriver: false }
         )}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <View style={{ width, alignItems: 'center' }}>
             <View style={{ flex: 0.7, justifyContent: 'center' }}>
-              <Image
+              <Animated.Image
                 source={item.image}
                 style={{
                   width: width / 2,
                   height: height / 2,
                   resizeMode: 'contain',
+                  transform: [
+                    {
+                      translateY: currentIndex === index ? translateYImage : 40,
+                    },
+                  ],
                 }}
               />
             </View>
